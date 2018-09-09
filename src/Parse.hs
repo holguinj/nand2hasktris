@@ -133,7 +133,28 @@ maybe p = (p >>= return . Just) <|> return Nothing
 whitespace :: Parser ()
 whitespace = parseWhile "whitespace" (`elem` " \t\n") >> return ()
 
-comma = char ',' <|> noParse "Expected comma"
+comma :: Parser ()
+comma = (char ',' >> return ()) <|> noParse "Expected comma"
+
+-- |Parse `p` one or more times.
+many :: Parser a -> Parser [a]
+many p = do
+  first <- p
+  rest <- many p <|> return []
+  return $ first : rest
+
+-- |Parse `p` zero or more times.
+some :: Parser a -> Parser [a]
+some p = many p <|> return []
+
+sepBy' :: Parser a -> Parser b -> Parser [a]
+sepBy' p sep = do
+  first <- p
+  rest <- (sep >> p `sepBy'` sep) <|> return []
+  return $ first : rest
+
+sepBy :: Parser a -> Parser b -> Parser [a]
+sepBy p sep = p `sepBy'` sep <|> return []
 
 threeNums :: Parser (String, String, String)
 threeNums = do
