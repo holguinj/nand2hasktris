@@ -1,13 +1,13 @@
 module Machine.Emulator where
 
-import           Control.Applicative ((<|>))
-import           Data.Maybe          (fromMaybe)
-import           Data.Vector         ((!?), (//))
-import qualified Data.Vector         as V
+import           Data.IntMap (IntMap)
+import qualified Data.IntMap as IMap
+import           Data.Maybe  (fromMaybe)
+import           Data.Vector (Vector, empty, (!?), (//))
 
 type Byte = Int
-type ByteVec = V.Vector Byte
-type Memory = ByteVec
+type ByteVec = Vector Byte
+type Memory = IntMap Byte
 type Program = ByteVec
 
 newtype Address = Address Byte
@@ -24,17 +24,18 @@ emptyMachine = Machine { aReg = zero
                        , dReg = zero
                        , memory = emptyMem
                        , pc = zero
-                       , program = V.empty
+                       , program = empty
                        }
 
 zero :: Byte
 zero = 0
 
 memGet :: Machine -> Address -> Byte
-memGet Machine{memory=mem} (Address addr) = fromMaybe zero $ mem !? addr
+memGet Machine{memory=mem} (Address addr) = IMap.findWithDefault zero addr mem
+
 
 memSet :: Machine -> Address -> Byte -> Machine
-memSet machine@Machine{memory=mem} (Address addr) val = machine { memory = mem // [(addr, val)] }
+memSet machine@Machine{memory=mem} (Address addr) val = machine { memory = IMap.insert addr val mem }
 
 mReg :: Machine -> Byte
 mReg machine = memGet machine (Address $ aReg machine)
@@ -42,8 +43,8 @@ mReg machine = memGet machine (Address $ aReg machine)
 setMReg :: Machine -> Byte -> Machine
 setMReg machine@Machine{aReg=reg} = memSet machine (Address reg)
 
-emptyMem :: ByteVec
-emptyMem = V.replicate (32 * 1024) zero
+emptyMem :: Memory
+emptyMem = IMap.empty
 
 pcInc :: Machine -> Machine
 pcInc machine = machine { pc = pc machine + 1}
