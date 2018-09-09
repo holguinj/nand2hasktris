@@ -33,7 +33,6 @@ zero = 0
 memGet :: Machine -> Address -> Byte
 memGet Machine{memory=mem} (Address addr) = IMap.findWithDefault zero addr mem
 
-
 memSet :: Machine -> Address -> Byte -> Machine
 memSet machine@Machine{memory=mem} (Address addr) val = machine { memory = IMap.insert addr val mem }
 
@@ -47,4 +46,4 @@ emptyMem :: Memory
 emptyMem = IMap.empty
 
 pcInc :: Machine -> Machine
-pcInc machine = machine { pc = pc machine + 1}
+pcInc machine = machine { pc = pc machine + 1 }
